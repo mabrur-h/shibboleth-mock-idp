@@ -18,11 +18,15 @@ cp /usr/share/nginx/html/metadata.xml /usr/share/nginx/html/meta.xml
 
 # Generate nginx config using Railway PORT
 echo "Creating Nginx configuration with PORT=${PORT}"
-envsubst < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
+envsubst '${PORT}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
 
 # Verify configuration
 echo "Generated Nginx configuration:"
 cat /etc/nginx/conf.d/default.conf
+nginx -t || {
+  echo "Nginx configuration test failed. Exiting."
+  exit 1
+}
 
 # Create debug index page
 cat > /usr/share/nginx/html/index.html << EOF
@@ -46,7 +50,7 @@ EOF
 
 # Start nginx in background
 echo "Starting Nginx..."
-nginx -g "daemon off;" &
+nginx &
 NGINX_PID=$!
 
 # Display Railway port info
@@ -60,6 +64,6 @@ sleep 2
 echo "Testing Nginx locally:"
 curl -v http://localhost:${PORT}/ || echo "Curl failed for Nginx local test"
 
-# Start mock-idp
+# Start mock-idp and keep the container running
 echo "Starting Mock IdP on port 8000..."
-mock-idp --host 0.0.0.0 --port 8000 
+exec mock-idp --host 0.0.0.0 --port 8000 
