@@ -26,5 +26,5 @@ ENV MOCK_IDP_PORT=5000
 # Expose port for Railway
 EXPOSE 8080
 
-# Command to run - use bash script directly, not through supervisord
-CMD ["sh", "-c", "envsubst '$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx && /usr/local/bin/mock-idp --host 0.0.0.0 --port $MOCK_IDP_PORT"] 
+# Command to run - start nginx and then mock-idp with the correct arguments
+CMD sh -c "envsubst '$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx && exec mock-idp --host 0.0.0.0 --port 5000" 
