@@ -1,34 +1,23 @@
-FROM nginx:alpine
+FROM python:3.9-slim
 
-# Install Python and required packages
-RUN apk add --no-cache python3 py3-pip gettext
-
-# Install the original mock-idp package with --break-system-packages flag
-RUN pip3 install --break-system-packages mock-idp
+# Install required packages
+RUN pip install mock-idp
 
 # Copy configuration files
 COPY mockidp.yaml /etc/mockidp.yaml
-COPY idp-metadata/metadata.xml /usr/share/nginx/html/metadata.xml
-COPY test.html /usr/share/nginx/html/test.html
-COPY server.conf.template /etc/nginx/templates/default.conf.template
-
-# Verify files are in place
-RUN ls -la /usr/share/nginx/html/metadata.xml && \
-    ls -la /usr/share/nginx/html/test.html && \
-    ls -la /etc/nginx/templates/default.conf.template
+COPY idp-metadata/metadata.xml /app/metadata.xml
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-# Railway will override this PORT value
-ENV PORT=8080
-ENV MOCK_IDP_PORT=8000
 
-# Copy startup script
-COPY start.sh /start.sh
-RUN chmod +x /start.sh && ls -la /start.sh
+# Create a simple startup script
+RUN echo '#!/bin/sh\n\
+echo "Starting Mock IdP on port $PORT"\n\
+exec mock-idp --host 0.0.0.0 --port $PORT --metadata-file /app/metadata.xml\n\
+' > /start.sh && chmod +x /start.sh
 
-# Expose the ports
-EXPOSE 5000 8000 8080
+# Expose the port
+EXPOSE $PORT
 
-# Start the services
+# Start the service
 CMD ["/start.sh"] 
