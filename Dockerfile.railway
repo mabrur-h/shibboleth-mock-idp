@@ -3,6 +3,9 @@ FROM python:3.9-slim
 # Install required packages
 RUN pip install mock-idp
 
+# Create directories
+RUN mkdir -p /app
+
 # Copy configuration files
 COPY mockidp.yaml /etc/mockidp.yaml
 COPY idp-metadata/metadata.xml /app/metadata.xml
@@ -13,7 +16,8 @@ ENV PYTHONUNBUFFERED=1
 # Create a simple startup script
 RUN echo '#!/bin/sh\n\
 echo "Starting Mock IdP on port $PORT"\n\
-exec mock-idp --host 0.0.0.0 --port $PORT --metadata-file /app/metadata.xml\n\
+cp /app/metadata.xml /app/metadata.xml.bak\n\
+exec mock-idp --host 0.0.0.0 --port $PORT\n\
 ' > /start.sh && chmod +x /start.sh
 
 # Expose the port
