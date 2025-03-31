@@ -10,7 +10,7 @@ COPY mockidp.yaml /usr/local/mock-idp/mockidp.yaml
 # Install nginx
 RUN apk add --no-cache nginx
 
-# Add supervisord to manage processes
+# Install supervisord
 RUN apk add --no-cache supervisor
 
 # Create supervisord config
@@ -20,8 +20,11 @@ COPY supervisord.conf /etc/supervisord.conf
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# Expose port for Railway (Railway assigns a random port through PORT env var)
+# Fix for port environment variable
+ENV MOCK_IDP_PORT=5000
+
+# Expose port for Railway
 EXPOSE 8080
 
-# Command to run
-CMD ["/bin/sh", "/start.sh"] 
+# Command to run - use bash script directly, not through supervisord
+CMD ["sh", "-c", "envsubst '$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx && /usr/local/bin/mock-idp --host 0.0.0.0 --port $MOCK_IDP_PORT"] 
