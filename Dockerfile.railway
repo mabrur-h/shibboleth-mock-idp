@@ -1,7 +1,8 @@
 FROM python:3.9-slim
 
-# Install required packages
-RUN pip install mock-idp
+# Install required packages and tools for debugging
+RUN apt-get update && apt-get install -y curl iputils-ping net-tools procps && \
+    pip install mock-idp
 
 # Create directories
 RUN mkdir -p /app
@@ -9,15 +10,26 @@ RUN mkdir -p /app
 # Copy configuration files
 COPY mockidp.yaml /etc/mockidp.yaml
 COPY idp-metadata/metadata.xml /app/metadata.xml
+COPY test.html /app/test.html
+
+# Create a simple index.html for testing
+RUN echo '<!DOCTYPE html><html><head><title>Mock SAML IDP</title></head><body><h1>Mock SAML IDP is running</h1><p>Available endpoints:</p><ul><li><a href="/metadata">SAML Metadata</a></li></ul></body></html>' > /app/index.html
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 
-# Create a simple startup script
-RUN echo '#!/bin/sh\n\
-echo "Starting Mock IdP on port $PORT"\n\
+# Create startup script
+RUN echo '#!/bin/bash\n\
+echo "Starting Mock IdP on Railway"\n\
+echo "Current directory: $(pwd)"\n\
+echo "Environment variables: PORT=$PORT"\n\
+echo "Network interfaces:"\n\
+ip addr show || echo "ip command not found"\n\
+echo "Copying metadata file for access"\n\
 cp /app/metadata.xml /app/metadata.xml.bak\n\
-exec mock-idp --host 0.0.0.0 --port $PORT\n\
+echo "Starting Mock IdP on port $PORT"\n\
+cd /app\n\
+mock-idp --host 0.0.0.0 --port $PORT\n\
 ' > /start.sh && chmod +x /start.sh
 
 # Expose the port
