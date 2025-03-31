@@ -1,30 +1,28 @@
-FROM nginx:alpine as nginx
-COPY nginx.conf /etc/nginx/nginx.conf.template
+FROM nginx:alpine
+
+# Install Python and required packages
+RUN apk add --no-cache python3 py3-pip gettext
+
+# Install the original mock-idp package
+RUN pip3 install mock-idp
+
+# Copy configuration files
+COPY mockidp.yaml /etc/mockidp.yaml
 COPY idp-metadata/metadata.xml /usr/share/nginx/html/metadata.xml
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
-FROM bjornskoglund/mock-idp:0.4.0
-COPY --from=nginx /etc/nginx/nginx.conf.template /etc/nginx/nginx.conf.template
-COPY --from=nginx /usr/share/nginx/html/metadata.xml /usr/share/nginx/html/metadata.xml
-COPY mockidp.yaml /usr/local/mock-idp/mockidp.yaml
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8080
 
-# Install nginx
-RUN apk add --no-cache nginx
+# Create a simple startup script
+RUN echo '#!/bin/sh\n\
+nginx -g "daemon on;" && \
+mock-idp --host 0.0.0.0 --port 5000\
+' > /start.sh && chmod +x /start.sh
 
-# Install supervisord
-RUN apk add --no-cache supervisor
+# Expose ports
+EXPOSE 8080 5000
 
-# Create supervisord config
-COPY supervisord.conf /etc/supervisord.conf
-
-# Create startup script
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-# Fix for port environment variable
-ENV MOCK_IDP_PORT=5000
-
-# Expose port for Railway
-EXPOSE 8080
-
-# Command to run - start nginx and then mock-idp with the correct arguments
-CMD sh -c "envsubst '$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx && exec mock-idp --host 0.0.0.0 --port 5000" 
+# Start the services
+CMD ["/start.sh"] 
