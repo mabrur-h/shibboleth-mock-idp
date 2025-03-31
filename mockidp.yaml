@@ -5,6 +5,8 @@ service_providers:
     response_url: "https://your-client-app.com/auth/shibboleth/callback"
   - name: "https://shibboleth-idp.up.railway.app/shibboleth"
     response_url: "https://shibboleth-idp.up.railway.app/auth/shibboleth/callback"
+  - name: "https://api-dev.buildmyedge.com/shibboleth"
+    response_url: "https://api-dev.buildmyedge.com/auth/shibboleth/callback"
 
 users:
   charlie:

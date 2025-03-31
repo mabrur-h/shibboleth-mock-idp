@@ -1,8 +1,8 @@
 FROM python:3.9-slim
 
 # Install required packages
-RUN apt-get update && apt-get install -y nginx && \
-    pip install flask mock-idp gunicorn
+RUN apt-get update && apt-get install -y nginx supervisor && \
+    pip install mock-idp flask
 
 # Create directories
 RUN mkdir -p /app /app/static
@@ -13,20 +13,71 @@ COPY idp-metadata/metadata.xml /app/static/metadata.xml
 COPY test.html /app/static/test.html
 
 # Create a simple index page
-RUN echo '<!DOCTYPE html><html><head><title>SAML Mock IDP</title></head><body><h1>SAML Mock IDP</h1><p>Available endpoints:</p><ul><li><a href="/metadata">SAML Metadata</a></li><li><a href="/test.html">Test Page</a></li></ul></body></html>' > /app/static/index.html
+RUN echo '<!DOCTYPE html><html><head><title>SAML Mock IDP</title></head><body><h1>SAML Mock IDP</h1><p>Available endpoints:</p><ul><li><a href="/metadata">SAML Metadata</a></li><li><a href="/test.html">Test Page</a></li><li><a href="/saml">SAML Login</a></li></ul><p>API integration with: api-dev.buildmyedge.com</p></body></html>' > /app/static/index.html
 
-# Create custom Flask app
-RUN echo 'from flask import Flask, send_from_directory, redirect\nfrom pathlib import Path\nimport sys, os, subprocess\n\napp = Flask(__name__, static_folder="static")\n\n@app.route("/")\ndef index():\n    return send_from_directory(app.static_folder, "index.html")\n\n@app.route("/metadata")\ndef metadata():\n    return send_from_directory(app.static_folder, "metadata.xml", mimetype="application/xml")\n\n@app.route("/test.html")\ndef test():\n    return send_from_directory(app.static_folder, "test.html")\n\n@app.route("/<path:path>")\ndef static_proxy(path):\n    return send_from_directory(app.static_folder, path)\n\nif __name__ == "__main__":\n    port = int(os.environ.get("PORT", 10000))\n    app.run(host="0.0.0.0", port=port, debug=False)\n' > /app/app.py
+# Configure Nginx
+RUN echo 'server {\n\
+    listen $PORT default_server;\n\
+    server_name _;\n\
+\n\
+    # Enable large uploads for potential SAML payloads\n\
+    client_max_body_size 10M;\n\
+\n\
+    # Root page\n\
+    location = / {\n\
+        root /app/static;\n\
+        index index.html;\n\
+    }\n\
+\n\
+    # Static files\n\
+    location = /test.html {\n\
+        root /app/static;\n\
+    }\n\
+\n\
+    # SAML metadata endpoint\n\
+    location = /metadata {\n\
+        add_header Content-Type application/xml;\n\
+        alias /app/static/metadata.xml;\n\
+    }\n\
+\n\
+    # Forward all SAML requests to mock-idp\n\
+    location /saml {\n\
+        proxy_pass http://127.0.0.1:8000;\n\
+        proxy_set_header Host $host;\n\
+        proxy_set_header X-Real-IP $remote_addr;\n\
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\
+        proxy_set_header X-Forwarded-Proto $scheme;\n\
+    }\n\
+}\n' > /etc/nginx/conf.d/default.template
 
-# Create startup script
-RUN echo '#!/bin/bash\necho "Starting SAML Mock IDP on Render"\ncd /app\nexec gunicorn --bind 0.0.0.0:$PORT app:app\n' > /app/start.sh && \
-    chmod +x /app/start.sh
+# Configure supervisor
+RUN echo '[supervisord]\n\
+nodaemon=true\n\
+\n\
+[program:nginx]\n\
+command=bash -c "envsubst \\$PORT < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && nginx -g \"daemon off;\"\n\
+autostart=true\n\
+autorestart=true\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0\n\
+\n\
+[program:mockidp]\n\
+command=mock-idp --host 0.0.0.0 --port 8000\n\
+autostart=true\n\
+autorestart=true\n\
+stdout_logfile=/dev/stdout\n\
+stdout_logfile_maxbytes=0\n\
+stderr_logfile=/dev/stderr\n\
+stderr_logfile_maxbytes=0\n\
+' > /etc/supervisor/conf.d/supervisord.conf
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
 # Expose the port
 EXPOSE $PORT
 
-# Start the service
-CMD ["/app/start.sh"] 
+# Start supervisord
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"] 
