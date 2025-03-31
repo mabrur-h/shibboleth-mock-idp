@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: saml-mock-idp
+    env: docker
+    repo: https://github.com/mabrur-h/shibboleth-mock-idp.git
+    region: oregon
+    plan: free
+    branch: main
+    dockerfilePath: Dockerfile.render
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 10000 

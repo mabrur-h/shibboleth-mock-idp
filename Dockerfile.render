@@ -1,0 +1,32 @@
+FROM python:3.9-slim
+
+# Install required packages
+RUN apt-get update && apt-get install -y nginx && \
+    pip install flask mock-idp gunicorn
+
+# Create directories
+RUN mkdir -p /app /app/static
+
+# Copy configuration files
+COPY mockidp.yaml /etc/mockidp.yaml
+COPY idp-metadata/metadata.xml /app/static/metadata.xml
+COPY test.html /app/static/test.html
+
+# Create a simple index page
+RUN echo '<!DOCTYPE html><html><head><title>SAML Mock IDP</title></head><body><h1>SAML Mock IDP</h1><p>Available endpoints:</p><ul><li><a href="/metadata">SAML Metadata</a></li><li><a href="/test.html">Test Page</a></li></ul></body></html>' > /app/static/index.html
+
+# Create custom Flask app
+RUN echo 'from flask import Flask, send_from_directory, redirect\nfrom pathlib import Path\nimport sys, os, subprocess\n\napp = Flask(__name__, static_folder="static")\n\n@app.route("/")\ndef index():\n    return send_from_directory(app.static_folder, "index.html")\n\n@app.route("/metadata")\ndef metadata():\n    return send_from_directory(app.static_folder, "metadata.xml", mimetype="application/xml")\n\n@app.route("/test.html")\ndef test():\n    return send_from_directory(app.static_folder, "test.html")\n\n@app.route("/<path:path>")\ndef static_proxy(path):\n    return send_from_directory(app.static_folder, path)\n\nif __name__ == "__main__":\n    port = int(os.environ.get("PORT", 10000))\n    app.run(host="0.0.0.0", port=port, debug=False)\n' > /app/app.py
+
+# Create startup script
+RUN echo '#!/bin/bash\necho "Starting SAML Mock IDP on Render"\ncd /app\nexec gunicorn --bind 0.0.0.0:$PORT app:app\n' > /app/start.sh && \
+    chmod +x /app/start.sh
+
+# Set the working directory
+WORKDIR /app
+
+# Expose the port
+EXPOSE $PORT
+
+# Start the service
+CMD ["/app/start.sh"] 
