@@ -1,7 +1,13 @@
 server {
-    listen ${PORT};
-    listen 5000;
+    listen ${PORT} default_server;
     server_name _;
+
+    # For debugging
+    location = /nginx-status {
+        stub_status on;
+        access_log off;
+        allow all;
+    }
 
     # Directly serve the metadata XML file
     location = /metadata {
@@ -22,6 +28,10 @@ server {
 
     # Simplified proxy
     location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_pass http://localhost:8000;
     }
 } 
