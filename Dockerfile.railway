@@ -9,10 +9,12 @@ RUN pip3 install --break-system-packages mock-idp
 # Copy configuration files
 COPY mockidp.yaml /etc/mockidp.yaml
 COPY idp-metadata/metadata.xml /usr/share/nginx/html/metadata.xml
+COPY test.html /usr/share/nginx/html/test.html
 COPY server.conf.template /etc/nginx/templates/default.conf.template
 
 # Verify files are in place
 RUN ls -la /usr/share/nginx/html/metadata.xml && \
+    ls -la /usr/share/nginx/html/test.html && \
     ls -la /etc/nginx/templates/default.conf.template
 
 # Set environment variables

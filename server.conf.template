@@ -1,11 +1,23 @@
 server {
     listen ${PORT};
+    listen 5000;
     server_name _;
 
     # Directly serve the metadata XML file
     location = /metadata {
         add_header Content-Type application/xml;
         alias /usr/share/nginx/html/metadata.xml;
+    }
+
+    # Alternate simpler path for metadata
+    location = /meta.xml {
+        add_header Content-Type application/xml;
+        root /usr/share/nginx/html;
+    }
+
+    # Test HTML page
+    location = /test.html {
+        root /usr/share/nginx/html;
     }
 
     # Simplified proxy
