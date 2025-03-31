@@ -1,0 +1,19 @@
+.idea
+*.iml
+
+__pycache__
+
+build
+*.pyc
+.coverage
+
+
+*.egg-info
+.DS_Store
+dist
+
+# Ignore if testing config file
+mockidp.yaml
+
+# virtual environment
+.venv

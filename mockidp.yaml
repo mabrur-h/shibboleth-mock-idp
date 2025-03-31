@@ -1,0 +1,105 @@
+service_providers:
+  - name: "http://localhost:3000/shibboleth"
+    response_url: "http://localhost:3000/auth/shibboleth/callback"
+
+users:
+  charlie:
+    first_name: "Charlie"
+    last_name: "Brown"
+    email: "charlie@gmail.com"
+    password: snoopy
+  linus:
+    first_name: "Linus"
+    last_name: "van Pelt"
+    email: "linus@gmail.com"
+    password: pumpkin
+  lucy:
+    password: charlie
+    first_name: "Lucy"
+    last_name: "van Pelt"
+    email: "lucy@gmail.com"
+  peppermint:
+    first_name: "Peppermint"
+    last_name: "Patty"
+    email: "peppermint@gmail.com"
+    password: peppermint
+  john:
+    first_name: "John"
+    last_name: "Smith"
+    email: "john.smithshib@uchicago.edu"
+    password: password123
+  emma:
+    first_name: "Emma"
+    last_name: "Johnson"
+    email: "emma.johnson@uchicago.edu"
+    password: password123
+  michael:
+    first_name: "Michael"
+    last_name: "Williams"
+    email: "michael.williams@uchicago.edu"
+    password: password123
+  sophia:
+    first_name: "Sophia"
+    last_name: "Brown"
+    email: "sophia.brown@uchicago.edu"
+    password: password123
+  james:
+    first_name: "James"
+    last_name: "Jones"
+    email: "james.jones@uchicago.edu"
+    password: password123
+  olivia:
+    first_name: "Olivia"
+    last_name: "Miller"
+    email: "olivia.miller@uchicago.edu"
+    password: password123
+  william:
+    first_name: "William"
+    last_name: "Davis"
+    email: "william.davis@uchicago.edu"
+    password: password123
+  ava:
+    first_name: "Ava"
+    last_name: "Garcia"
+    email: "ava.garcia@uchicago.edu"
+    password: password123
+  ethan:
+    first_name: "Ethan"
+    last_name: "Rodriguez"
+    email: "ethan.rodriguez@uchicago.edu"
+    password: password123
+  isabella:
+    first_name: "Isabella"
+    last_name: "Wilson"
+    email: "isabella.wilson@uchicago.edu"
+    password: password123
+  mason:
+    first_name: "Mason"
+    last_name: "Anderson"
+    email: "mason.anderson@uchicago.edu"
+    password: password123
+  mia:
+    first_name: "Mia"
+    last_name: "Thomas"
+    email: "mia.thomas@uchicago.edu"
+    password: password123
+  alexander:
+    first_name: "Alexander"
+    last_name: "Taylor"
+    email: "alexander.taylor@uchicago.edu"
+    password: password123
+  charlotte:
+    first_name: "Charlotte"
+    last_name: "Moore"
+    email: "charlotte.moore@uchicago.edu"
+    password: password123
+  benjamin:
+    first_name: "Benjamin"
+    last_name: "Jackson"
+    email: "benjamin.jackson@uchicago.edu"
+    password: password123
+  amelia:
+    first_name: "Amelia"
+    last_name: "Martin"
+    email: "amelia.martin@uchicago.edu"
+    password: password123 
