@@ -23,4 +23,5 @@ RUN chmod +x /start.sh
 # Expose port for Railway (Railway assigns a random port through PORT env var)
 EXPOSE 8080
 
-# Startup command will be from railway.json 
+# Command to run
+CMD ["/bin/sh", "/start.sh"] 
