@@ -1,7 +1,10 @@
 #!/bin/sh
 
-# Process nginx configuration template to replace environment variables
-envsubst '$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+# Generate nginx config using Railway PORT
+envsubst < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
 
-# Start supervisord to manage both services
-/usr/bin/supervisord -c /etc/supervisord.conf 
+# Start nginx in background
+nginx
+
+# Start mock-idp in foreground
+exec mock-idp --host 0.0.0.0 --port 5000 
