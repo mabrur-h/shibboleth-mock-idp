@@ -21,14 +21,14 @@ RUN ls -la /usr/share/nginx/html/metadata.xml && \
 ENV PYTHONUNBUFFERED=1
 # Railway will override this PORT value
 ENV PORT=8080
-ENV MOCK_IDP_PORT=5000
+ENV MOCK_IDP_PORT=8000
 
 # Copy startup script
 COPY start.sh /start.sh
 RUN chmod +x /start.sh && ls -la /start.sh
 
 # Expose the ports
-EXPOSE 5000 8080
+EXPOSE 5000 8000 8080
 
 # Start the services
 CMD ["/start.sh"] 

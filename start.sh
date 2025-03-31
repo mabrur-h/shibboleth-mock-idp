@@ -29,5 +29,5 @@ echo "Test URL: https://shibboleth-idp.up.railway.app/test.html"
 echo "Metadata URL: https://shibboleth-idp.up.railway.app/metadata"
 
 # Start mock-idp in foreground
-echo "Starting Mock IdP..."
-exec mock-idp --host 0.0.0.0 --port 5000 
+echo "Starting Mock IdP on port 8000..."
+exec mock-idp --host 0.0.0.0 --port 8000 
