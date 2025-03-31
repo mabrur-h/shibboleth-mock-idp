@@ -1,6 +1,8 @@
 service_providers:
   - name: "http://localhost:3000/shibboleth"
     response_url: "http://localhost:3000/auth/shibboleth/callback"
+  - name: "https://your-client-app.com/shibboleth"
+    response_url: "https://your-client-app.com/auth/shibboleth/callback"
 
 users:
   charlie:
@@ -26,7 +28,7 @@ users:
   john:
     first_name: "John"
     last_name: "Smith"
-    email: "john.smithshib@uchicago.edu"
+    email: "john.smithshib2@uchicago.edu"
     password: password123
   emma:
     first_name: "Emma"
