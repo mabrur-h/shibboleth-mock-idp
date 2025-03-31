@@ -16,13 +16,56 @@ ls -la /usr/share/nginx/html/
 # Copy metadata.xml to location with simple name for testing
 cp /usr/share/nginx/html/metadata.xml /usr/share/nginx/html/meta.xml
 
-# Generate nginx config using Railway PORT
-echo "Creating Nginx configuration with PORT=${PORT}"
-envsubst '${PORT}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
+# Manual approach - avoid envsubst completely
+NGINX_CONF="/etc/nginx/conf.d/default.conf"
+cat > "$NGINX_CONF" << EOF
+server {
+    listen ${PORT} default_server;
+    server_name _;
+
+    # For debugging
+    location = /nginx-status {
+        stub_status on;
+        access_log off;
+        allow all;
+    }
+
+    # Directly serve the metadata XML file
+    location = /metadata {
+        add_header Content-Type application/xml;
+        alias /usr/share/nginx/html/metadata.xml;
+    }
+
+    # Alternate simpler path for metadata
+    location = /meta.xml {
+        add_header Content-Type application/xml;
+        root /usr/share/nginx/html;
+    }
+
+    # Test HTML page
+    location = /test.html {
+        root /usr/share/nginx/html;
+    }
+
+    # Root HTML page
+    location = / {
+        root /usr/share/nginx/html;
+        index index.html;
+    }
+
+    # Simplified proxy
+    location /idp/ {
+        proxy_pass http://localhost:8000/;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+EOF
 
 # Verify configuration
 echo "Generated Nginx configuration:"
-cat /etc/nginx/conf.d/default.conf
+cat "$NGINX_CONF"
+
 nginx -t || {
   echo "Nginx configuration test failed. Exiting."
   exit 1
@@ -43,6 +86,7 @@ cat > /usr/share/nginx/html/index.html << EOF
         <li><a href="/meta.xml">Alternate metadata path (XML format)</a></li>
         <li><a href="/test.html">Test HTML page</a></li>
         <li><a href="/nginx-status">Nginx status (for debugging)</a></li>
+        <li><a href="/idp/">IdP Application</a></li>
     </ul>
 </body>
 </html>
