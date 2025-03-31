@@ -2,11 +2,14 @@ server {
     listen ${PORT};
     server_name _;
 
-    location /metadata {
+    # Directly serve the metadata XML file
+    location = /metadata {
         add_header Content-Type application/xml;
-        alias /usr/share/nginx/html/metadata.xml;
+        root /usr/share/nginx/html;
+        try_files /metadata.xml =404;
     }
 
+    # Proxy everything else to the mock IdP
     location / {
         proxy_pass http://localhost:5000;
         proxy_set_header Host $host;
